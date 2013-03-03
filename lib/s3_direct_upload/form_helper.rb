@@ -28,6 +28,8 @@ module S3DirectUpload
       end
 
       def form_options
+        form = @options[:form] || default_form_id
+
         {
           id: @options[:id],
           class: @options[:class],
@@ -36,7 +38,8 @@ module S3DirectUpload
           multipart: true,
           data: {
             post: @options[:post],
-            as: @options[:as]
+            as: @options[:as],
+            form: form
           }.reverse_merge(@options[:data] || {})
         }
       end
@@ -89,6 +92,15 @@ module S3DirectUpload
           )
         ).gsub("\n", "")
       end
+
+      private
+        def default_form_id
+          model = @options[:model]
+          return if model == nil
+
+          model_name = model.class.name.underscore
+          model.new_record? ? "new_#{model_name}" : "edit_#{model_name}_#{model.id}"
+        end
     end
   end
 end

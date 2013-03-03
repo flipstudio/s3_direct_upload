@@ -73,7 +73,21 @@ $.fn.S3Uploader = (options) ->
             error:      ( xhr, status, error )  -> $uploadForm.trigger( 'ajax:error', [xhr, status, error] )
 
           # $.post(to, content)
+        else
+          form = $uploadForm.data('form')
+          if form
+            hidden_field = (name, value) -> $('<input type="hidden">').attr('name', name).attr('value', value)
+            s3Escape = (value) -> unescape(value.replace(/\+/g, '%20').replace(/%7E/g, '~'))
 
+            bucketPath = content.filepath.substring(1)
+            filePath = bucketPath.substring(bucketPath.indexOf('/') + 1)
+            parentNode = $('#' + form)
+            as = $uploadForm.data('as')
+
+            parentNode.append hidden_field(as + '[file_path]', s3Escape(filePath))
+            parentNode.append hidden_field(as + '[file_size]', content.filesize)
+            parentNode.append hidden_field(as + '[content_type]', content.filetype)
+        
         data.context.remove() if data.context && settings.remove_completed_progress_bar # remove progress bar
         $uploadForm.trigger("s3_upload_complete", [content])
 

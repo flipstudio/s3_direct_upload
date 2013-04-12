@@ -77,14 +77,11 @@ $.fn.S3Uploader = (options) ->
           form = $uploadForm.data('form')
           if form
             hidden_field = (name, value) -> $('<input type="hidden">').attr('name', name).attr('value', value)
-            s3Escape = (value) -> unescape(value.replace(/\+/g, '%20').replace(/%7E/g, '~'))
-
-            bucketPath = content.filepath.substring(1)
-            filePath = bucketPath.substring(bucketPath.indexOf('/') + 1)
+            
             parentNode = $('#' + form)
             as = $uploadForm.data('as')
 
-            parentNode.append hidden_field(as + '[file_path]', s3Escape(filePath))
+            parentNode.append hidden_field(as + '[file_path]', content.key)
             parentNode.append hidden_field(as + '[file_size]', content.filesize)
             parentNode.append hidden_field(as + '[content_type]', content.filetype)
         
@@ -118,10 +115,12 @@ $.fn.S3Uploader = (options) ->
     if result # Use the S3 response to set the URL to avoid character encodings bugs
       content.url      = $(result).find("Location").text()
       content.filepath = $('<a />').attr('href', content.url)[0].pathname
+      content.key      = $(result).find("Key").text()
     else # IE <= 9 return a null result object so we use the file object instead
       domain           = $uploadForm.attr('action')
       content.filepath = settings.path + $uploadForm.find('input[name=key]').val().replace('/${filename}', '')
       content.url      = domain + content.filepath + '/' + encodeURIComponent(file.name)
+      content.key = $uploadForm.find('input[name=key]').val().replace('${filename}', file.name)
 
     content.filename   = file.name
     content.filesize   = file.size if 'size' of file
